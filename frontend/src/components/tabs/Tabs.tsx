@@ -10,8 +10,17 @@ export const Tabs = () => {
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
+      <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 className="text-lg font-semibold mb-4">Statut du Workflow</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-600">Phase actuelle</p>
+            <p className="text-xl font-bold text-gray-900">RegisteringVoters</p>
+          </div>
+          <span className="px-4 py-2 bg-green-100 text-green-800 rounded-lg font-medium">Actif</span>
+        </div>
+      </div>
       <div className="bg-white rounded-lg shadow">
-        {/* Navigation des onglets */}
         <div className="border-b border-gray-200">
           <nav className="flex -mb-px">
             <button
@@ -50,8 +59,6 @@ export const Tabs = () => {
             </button>
           </nav>
         </div>
-
-        {/* Contenu des onglets */}
         <div className="p-6">
           {activeTab === 'voters' && (
             <div>
