@@ -1,7 +1,32 @@
 import { useState } from 'react';
+import { useWatchContractEvent, useWriteContract } from 'wagmi';
+import { VOTING_ADDRESS, VOTING_ABI, CHAIN_ID } from '../../lib/votingContract';
+import type { Address } from 'viem';
 
 export const VotersTab = () => {
-  const [voterAddress, setVoterAddress] = useState('');
+  const [voterAddress, setVoterAddress] = useState<Address>('0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266' as Address);
+  const writeContractCreate = useWriteContract();
+
+  const handlerCreateVoter = () => {
+    writeContractCreate.mutate(
+      {
+        address: VOTING_ADDRESS,
+        abi: VOTING_ABI,
+        functionName: 'addVoter',
+        args: [voterAddress],
+        chainId: CHAIN_ID,
+      },
+      {
+        onSuccess: (data) => {
+          console.log('Transaction success:', data);
+        },
+        onError: (error) => {
+          console.error('Transaction error:', error);
+        },
+      },
+    );
+  };
+
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Gestion des Votants</h3>
@@ -9,8 +34,16 @@ export const VotersTab = () => {
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2"> Ajouter un votant (Owner uniquement) </label>
         <div className="flex gap-2">
-          <input type="text" placeholder="Adresse 0x..." value={voterAddress} onChange={(e) => setVoterAddress(e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Ajouter</button>
+          <input
+            type="text"
+            placeholder="Adresse 0x..."
+            value={voterAddress}
+            onChange={(e) => setVoterAddress(e.target.value as Address)}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handlerCreateVoter}>
+            Ajouter
+          </button>
         </div>
       </div>
 
