@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { usePublicClient, useWatchContractEvent, useWriteContract } from 'wagmi';
+import { usePublicClient, useWriteContract } from 'wagmi';
 import { VOTING_ADDRESS, VOTING_ABI, CHAIN_ID } from '../../lib/votingContract';
 import { isAddress, type Address } from 'viem';
 import { toast } from 'sonner';
@@ -35,8 +35,8 @@ export const VotersTab = () => {
         chainId: CHAIN_ID,
       },
       {
-        onSuccess: (data) => {
-          toast(`Tâche ${data} ajoutée avec succès !`);
+        onSuccess: () => {
+          toast(`L'adresse du votant ${voterAddress} ajoutée avec succès !`);
           setVoters((prevVoters) => {
             return [...prevVoters, voterAddress];
           });
