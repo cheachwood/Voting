@@ -1,13 +1,31 @@
-import { useState } from 'react';
-import { useWatchContractEvent, useWriteContract } from 'wagmi';
+import { useEffect, useState } from 'react';
+import { usePublicClient, useWatchContractEvent, useWriteContract } from 'wagmi';
 import { VOTING_ADDRESS, VOTING_ABI, CHAIN_ID } from '../../lib/votingContract';
-import type { Address } from 'viem';
+import { isAddress, type Address } from 'viem';
+import { toast } from 'sonner';
 
 export const VotersTab = () => {
   const [voterAddress, setVoterAddress] = useState<Address>('0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266' as Address);
   const writeContractCreate = useWriteContract();
+  const [voters, setVoters] = useState<Address[]>([]);
+  const publicClient = usePublicClient();
 
   const handlerCreateVoter = () => {
+    if (!voterAddress) {
+      toast('Le champ Voter ne peut pas être vide');
+      return;
+    }
+
+    if (!isAddress(voterAddress)) {
+      toast('Le champ Voter doit être une adresse Ethereum valide');
+      return;
+    }
+
+    if (voters.includes(voterAddress)) {
+      toast.error('Ce votant est déjà enregistré');
+      return;
+    }
+
     writeContractCreate.mutate(
       {
         address: VOTING_ADDRESS,
@@ -18,19 +36,40 @@ export const VotersTab = () => {
       },
       {
         onSuccess: (data) => {
-          console.log('Transaction success:', data);
+          toast(`Tâche ${data} ajoutée avec succès !`);
+          setVoters((prevVoters) => {
+            return [...prevVoters, voterAddress];
+          });
         },
         onError: (error) => {
-          console.error('Transaction error:', error);
+          toast(`Transaction error: ${error}`);
         },
       },
     );
   };
 
+  useEffect(() => {
+    const fetchVoters = async () => {
+      if (!publicClient) return;
+
+      const events = await publicClient.getContractEvents({
+        address: VOTING_ADDRESS,
+        abi: VOTING_ABI,
+        eventName: 'VoterRegistered',
+        fromBlock: 0n, // Depuis le début
+      });
+      const addresses = events.map((event) => event.args.voterAddress!);
+      setVoters(addresses);
+      console.log(addresses);
+    };
+
+    fetchVoters();
+  }, [publicClient]);
+
   return (
     <div>
+      {' '}
       <h3 className="text-lg font-semibold mb-4">Gestion des Votants</h3>
-
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2"> Ajouter un votant (Owner uniquement) </label>
         <div className="flex gap-2">
@@ -46,7 +85,6 @@ export const VotersTab = () => {
           </button>
         </div>
       </div>
-
       <h4 className="text-sm font-semibold text-gray-700 mb-2">Liste des votants</h4>
       <div className="border border-gray-200 rounded-lg overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
@@ -54,35 +92,17 @@ export const VotersTab = () => {
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Adresse</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">A voté</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vote pour</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            <tr>
-              <td className="px-6 py-4 text-sm font-mono text-gray-900">0x742d35Cc...95f0bEb</td>
-              <td className="px-6 py-4">
-                <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Enregistré</span>
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-500">Non</td>
-              <td className="px-6 py-4 text-sm text-gray-500">-</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 text-sm font-mono text-gray-900">0x5B38Da6a...6beddC4</td>
-              <td className="px-6 py-4">
-                <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Enregistré</span>
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-500">Non</td>
-              <td className="px-6 py-4 text-sm text-gray-500">-</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 text-sm font-mono text-gray-900">0xAb8483F6...315835cb2</td>
-              <td className="px-6 py-4">
-                <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Enregistré</span>
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-500">Non</td>
-              <td className="px-6 py-4 text-sm text-gray-500">-</td>
-            </tr>
+            {voters.map((address) => (
+              <tr key={address}>
+                <td className="px-6 py-4 text-sm font-mono text-gray-900">{address}</td>
+                <td className="px-6 py-4">
+                  <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Enregistré</span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
