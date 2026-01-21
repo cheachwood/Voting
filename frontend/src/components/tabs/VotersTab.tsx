@@ -5,7 +5,7 @@ import { isAddress, type Address } from 'viem';
 import { toast } from 'sonner';
 
 export const VotersTab = () => {
-  const [voterAddress, setVoterAddress] = useState<Address>('0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266' as Address);
+  const [voterAddress, setVoterAddress] = useState<Address>('' as Address);
   const writeContractCreate = useWriteContract();
   const [voters, setVoters] = useState<Address[]>([]);
   const publicClient = usePublicClient();
@@ -40,6 +40,7 @@ export const VotersTab = () => {
           setVoters((prevVoters) => {
             return [...prevVoters, voterAddress];
           });
+          setVoterAddress('' as Address);
         },
         onError: (error) => {
           toast(`Transaction error: ${error}`);
