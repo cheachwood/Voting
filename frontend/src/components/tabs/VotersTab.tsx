@@ -35,8 +35,8 @@ export const VotersTab = () => {
         chainId: CHAIN_ID,
       },
       {
-        onSuccess: (data) => {
-          toast(`Tâche ${data} ajoutée avec succès !`);
+        onSuccess: () => {
+          toast(`L'adresse du votant ${voterAddress} ajoutée avec succès !`);
           setVoters((prevVoters) => {
             return [...prevVoters, voterAddress];
           });
