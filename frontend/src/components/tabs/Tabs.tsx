@@ -14,21 +14,38 @@ export const Tabs = () => {
   const [wfStatus, setWfStatus] = useState(0);
 
   useEffect(() => {
-    console.log('🔍 Fetching tabs...');
-    const fetchWorkflow = async () => {
-      if (!publicClient) return;
+    if (!publicClient) return;
 
+    // Écouter les changements en temps réel
+    const unwatch = publicClient.watchContractEvent({
+      address: VOTING_ADDRESS,
+      abi: VOTING_ABI,
+      eventName: 'WorkflowStatusChange',
+      onLogs: (logs) => {
+        const newStatus = Number(logs[0].args.newStatus);
+        setWfStatus(newStatus);
+        console.log('Nouveau status:', newStatus);
+      },
+    });
+
+    // Charger le status initial au démarrage
+    const fetchInitialStatus = async () => {
       const events = await publicClient.getContractEvents({
         address: VOTING_ADDRESS,
         abi: VOTING_ABI,
         eventName: 'WorkflowStatusChange',
         fromBlock: 0n,
       });
-      const workflowActualStatus = events[events.length - 1]?.args.newStatus;
-      setWfStatus(workflowActualStatus!);
+      if (events.length > 0) {
+        const status = Number(events[events.length - 1]?.args.newStatus);
+        setWfStatus(status);
+        console.log('Status initial:', status);
+      }
     };
 
-    fetchWorkflow();
+    fetchInitialStatus();
+
+    return () => unwatch();
   }, [publicClient]);
 
   return (
@@ -38,9 +55,15 @@ export const Tabs = () => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600">Phase actuelle</p>
-            <p className="text-xl font-bold text-gray-900">RegisteringVoters</p>
+            <p className="text-xl font-bold text-gray-900">
+              {wfStatus === 0 && 'Enregistrement des électeurs'}
+              {wfStatus === 1 && 'Début des propositions'}
+              {wfStatus === 2 && 'Fin des propositions'}
+              {wfStatus === 3 && 'Vote des propositions'}
+              {wfStatus === 4 && 'Fin des votes des propositions'}
+              {wfStatus === 5 && 'Dépouillement'}
+            </p>
           </div>
-          <span className="px-4 py-2 bg-green-100 text-green-800 rounded-lg font-medium">Actif</span>
         </div>
       </div>
       <div className="bg-white rounded-lg shadow">

@@ -50,7 +50,6 @@ export const VotersTab = () => {
   };
 
   useEffect(() => {
-    console.log('🔍 Fetching voters...');
     const fetchVoters = async () => {
       if (!publicClient) return;
 

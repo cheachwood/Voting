@@ -7,7 +7,6 @@ import { useConnection, usePublicClient, useWriteContract } from 'wagmi';
 
 const ProposalsTab = () => {
   const [proposalDescription, setProposalDescription] = useState('');
-  const [voterAddress, setVoterAddress] = useState<Address>('' as Address);
   const writeContractCreate = useWriteContract();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const publicClient = usePublicClient();
@@ -45,7 +44,6 @@ const ProposalsTab = () => {
   };
 
   useEffect(() => {
-    console.log('🔍 Fetching propsals...');
     const fetchProposals = async () => {
       if (!publicClient) return;
 
@@ -103,9 +101,10 @@ const ProposalsTab = () => {
           onChange={(e) => setProposalDescription(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
         ></textarea>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={handlerCreateProposals}>
+        <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed" onClick={handlerCreateProposals} disabled={!addressInWhiteList}>
           Soumettre
         </button>
+        {!addressInWhiteList && <p className="text-sm text-red-600 mt-2">Vous devez être enregistré comme votant pour soumettre une proposition.</p>}
       </div>
 
       <h4 className="text-sm font-semibold text-gray-700 mb-2">Liste des propositions</h4>
