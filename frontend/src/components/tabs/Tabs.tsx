@@ -1,12 +1,35 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { VotersTab } from './VotersTab';
 import ProposalsTab from './ProposalsTab';
 import VoteTab from './VoteTab';
 import { WorkflowTab } from './WorkflowTab';
 import { ResultsTab } from './ResultsTab';
+import { usePublicClient } from 'wagmi';
+import { VOTING_ABI, VOTING_ADDRESS } from '@/lib/votingContract';
+import { WorkflowStatusValues } from '.';
 
 export const Tabs = () => {
   const [activeTab, setActiveTab] = useState('voters');
+  const publicClient = usePublicClient();
+  const [wfStatus, setWfStatus] = useState(0);
+
+  useEffect(() => {
+    console.log('🔍 Fetching tabs...');
+    const fetchWorkflow = async () => {
+      if (!publicClient) return;
+
+      const events = await publicClient.getContractEvents({
+        address: VOTING_ADDRESS,
+        abi: VOTING_ABI,
+        eventName: 'WorkflowStatusChange',
+        fromBlock: 0n,
+      });
+      const workflowActualStatus = events[events.length - 1]?.args.newStatus;
+      setWfStatus(workflowActualStatus!);
+    };
+
+    fetchWorkflow();
+  }, [publicClient]);
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
@@ -30,19 +53,22 @@ export const Tabs = () => {
               Votants
             </button>
 
-            <button
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'proposals' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              onClick={() => setActiveTab('proposals')}
-            >
-              Propositions
-            </button>
-
-            <button
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'vote' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              onClick={() => setActiveTab('vote')}
-            >
-              Voter
-            </button>
+            {wfStatus === WorkflowStatusValues.ProposalsRegistrationStarted && (
+              <button
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'proposals' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                onClick={() => setActiveTab('proposals')}
+              >
+                Propositions
+              </button>
+            )}
+            {wfStatus === WorkflowStatusValues.VotingSessionStarted && (
+              <button
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'vote' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                onClick={() => setActiveTab('vote')}
+              >
+                Voter
+              </button>
+            )}
 
             <button
               className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'workflow' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
@@ -50,13 +76,14 @@ export const Tabs = () => {
             >
               Workflow
             </button>
-
-            <button
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'results' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              onClick={() => setActiveTab('results')}
-            >
-              Résultats
-            </button>
+            {wfStatus === WorkflowStatusValues.VotesTallied && (
+              <button
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'results' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                onClick={() => setActiveTab('results')}
+              >
+                Résultats
+              </button>
+            )}
           </nav>
         </div>
         <div className="p-6">

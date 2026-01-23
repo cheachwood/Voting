@@ -1,6 +1,6 @@
 import type { WorkflowCardProps } from '.';
 
-export const WorkflowCard = ({ title, description, isAvailable, onAction, buttonLabel, buttonColor = 'blue' }: WorkflowCardProps) => {
+export const WorkflowCard = ({ title, description, isAvailable, onAction, buttonLabel, buttonColor = 'blue', worflowStatus }: WorkflowCardProps) => {
   const buttonClass = buttonColor === 'red' ? 'px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700' : 'px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700';
 
   const disabledButtonClass = 'px-4 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed';

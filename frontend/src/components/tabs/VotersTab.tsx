@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { usePublicClient, useWriteContract } from 'wagmi';
-import { VOTING_ADDRESS, VOTING_ABI, CHAIN_ID } from '../../lib/votingContract';
+import { VOTING_ADDRESS, VOTING_ABI, CHAIN_ID } from '@/lib/votingContract';
 import { isAddress, type Address } from 'viem';
 import { toast } from 'sonner';
 
@@ -50,6 +50,7 @@ export const VotersTab = () => {
   };
 
   useEffect(() => {
+    console.log('🔍 Fetching voters...');
     const fetchVoters = async () => {
       if (!publicClient) return;
 
@@ -57,11 +58,10 @@ export const VotersTab = () => {
         address: VOTING_ADDRESS,
         abi: VOTING_ABI,
         eventName: 'VoterRegistered',
-        fromBlock: 0n, // Depuis le début
+        fromBlock: 0n,
       });
       const addresses = events.map((event) => event.args.voterAddress!);
       setVoters(addresses);
-      console.log(addresses);
     };
 
     fetchVoters();
