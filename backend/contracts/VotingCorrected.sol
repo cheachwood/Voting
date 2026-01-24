@@ -139,6 +139,7 @@ contract VotingCorrected is Ownable {
 
         // On initialise avec une proposition par défaut pour éviter un index vide
         proposalsArray.push(Proposal("GENESIS", 0));
+        winningProposalID = 1;
 
         emit WorkflowStatusChange(
             WorkflowStatus.RegisteringVoters,
