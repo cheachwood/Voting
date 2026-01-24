@@ -5,6 +5,8 @@ import { type Address } from 'viem';
 import { toast } from 'sonner';
 import type { Proposal } from '../tabs';
 
+const DEPLOYMENT_BLOCK = 10115418n; // Remplacez par le numéro de bloc réel du déploiement
+
 /// Hook personnalisé pour interagir avec le contrat de vote
 /// Fournit des fonctions pour gérer les votants, propositions, votes et le workflow
 /// Gère également l'état local et les effets secondaires liés au contrat
@@ -74,7 +76,7 @@ export const useVotingContract = () => {
         address: VOTING_ADDRESS,
         abi: VOTING_ABI,
         eventName: 'WorkflowStatusChange',
-        fromBlock: 0n,
+        fromBlock: DEPLOYMENT_BLOCK,
       });
       if (events.length > 0) {
         setWfStatus(Number(events[events.length - 1]?.args.newStatus));
@@ -92,7 +94,7 @@ export const useVotingContract = () => {
       address: VOTING_ADDRESS,
       abi: VOTING_ABI,
       eventName: 'VoterRegistered',
-      fromBlock: 0n,
+      fromBlock: DEPLOYMENT_BLOCK,
     });
     const addresses = events.map((event) => event.args.voterAddress!);
     setVoters(addresses);
@@ -122,7 +124,7 @@ export const useVotingContract = () => {
       address: VOTING_ADDRESS,
       abi: VOTING_ABI,
       eventName: 'ProposalRegistered',
-      fromBlock: 0n,
+      fromBlock: DEPLOYMENT_BLOCK,
     });
     const proposalIds = events.map((event) => event.args.proposalId!);
     const resultProposals = await Promise.all(

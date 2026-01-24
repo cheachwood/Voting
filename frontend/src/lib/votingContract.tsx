@@ -1,6 +1,10 @@
-// Adresse du contrat déployé
-export const VOTING_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3';
-export const CHAIN_ID = Number(import.meta.env.VITE_CHAIN_ID) || 31337;
+// Adresse du contrat déployé HArdhat local
+// export const VOTING_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+// export const CHAIN_ID = Number(import.meta.env.VITE_CHAIN_ID) || 31337;
+
+// Adresse du contrat déployé sur Sepolia
+export const VOTING_ADDRESS = '0x00bDc3021D57c4bAc9dc0d96a77ad897AB8AC03f';
+export const CHAIN_ID = 11155111;
 
 // ABI du smart contract JobBoard
 export const VOTING_ABI = [
