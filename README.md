@@ -341,4 +341,4 @@ MIT
 
 ---
 
-Développé avec ❤️ et beaucoup de café ☕
+Développé avec ❤️ et beaucoup de sueur, mais pas trop de jurons finalement
