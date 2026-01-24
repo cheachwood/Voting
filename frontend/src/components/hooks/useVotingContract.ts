@@ -30,13 +30,14 @@ export const useVotingContract = () => {
 
   // Récupérer les infos d'un votant
   const getVoterInfo = async (address: Address) => {
-    if (!publicClient) return null;
+    if (!publicClient || !clientAddress) return null;
     try {
       const voter = await publicClient.readContract({
         address: VOTING_ADDRESS,
         abi: VOTING_ABI,
         functionName: 'getVoter',
         args: [address],
+        account: clientAddress,
       });
       return voter;
     } catch {
@@ -52,6 +53,7 @@ export const useVotingContract = () => {
         address: VOTING_ADDRESS,
         abi: VOTING_ABI,
         functionName: 'owner',
+        account: clientAddress,
       });
       setIsOwner(ownerAddress.toLowerCase() === clientAddress.toLowerCase());
     };
@@ -119,7 +121,7 @@ export const useVotingContract = () => {
 
   // Ecoute et récupération des propositions
   const fetchProposals = useCallback(async () => {
-    if (!publicClient) return;
+    if (!publicClient || !clientAddress) return;
     const events = await publicClient.getContractEvents({
       address: VOTING_ADDRESS,
       abi: VOTING_ABI,
@@ -134,15 +136,16 @@ export const useVotingContract = () => {
           abi: VOTING_ABI,
           functionName: 'getOneProposal',
           args: [proposalId],
+          account: clientAddress,
         }),
       ),
     );
     setProposals(resultProposals);
-  }, [publicClient]);
+  }, [publicClient, clientAddress]);
 
   // Récupérer et écouter les propositions et votes
   useEffect(() => {
-    if (!publicClient) return;
+    if (!publicClient || !clientAddress) return;
     if (activeTab !== 'proposals' && activeTab !== 'vote' && activeTab !== 'results') return;
 
     fetchProposals();
@@ -166,7 +169,7 @@ export const useVotingContract = () => {
       unwatchVotes();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publicClient, activeTab]);
+  }, [publicClient, activeTab, clientAddress]);
 
   // Récupérer la proposition gagnante après le dépouillement
   useEffect(() => {
@@ -177,12 +180,13 @@ export const useVotingContract = () => {
         address: VOTING_ADDRESS,
         abi: VOTING_ABI,
         functionName: 'winningProposalID',
+        account: clientAddress,
       });
       setWinningProposal(proposals[Number(winningId) - 1]);
     };
 
     fetchWinner();
-  }, [proposals, publicClient, activeTab]);
+  }, [proposals, publicClient, activeTab, clientAddress]);
 
   // Ajouter un votant
   const addVoter = async (voterAddress: Address) => {
