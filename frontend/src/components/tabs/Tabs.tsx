@@ -1,52 +1,13 @@
-import { useEffect, useState } from 'react';
 import { VotersTab } from './VotersTab';
 import ProposalsTab from './ProposalsTab';
 import VoteTab from './VoteTab';
 import { WorkflowTab } from './WorkflowTab';
 import { ResultsTab } from './ResultsTab';
-import { usePublicClient } from 'wagmi';
-import { VOTING_ABI, VOTING_ADDRESS } from '@/lib/votingContract';
 import { WorkflowStatusValues } from '.';
+import { useVotingContract } from '../hooks/useVotingContract';
 
 export const Tabs = () => {
-  const [activeTab, setActiveTab] = useState('voters');
-  const publicClient = usePublicClient();
-  const [wfStatus, setWfStatus] = useState(0);
-
-  useEffect(() => {
-    if (!publicClient) return;
-
-    // Écouter les changements en temps réel
-    const unwatch = publicClient.watchContractEvent({
-      address: VOTING_ADDRESS,
-      abi: VOTING_ABI,
-      eventName: 'WorkflowStatusChange',
-      onLogs: (logs) => {
-        const newStatus = Number(logs[0].args.newStatus);
-        setWfStatus(newStatus);
-        console.log('Nouveau status:', newStatus);
-      },
-    });
-
-    // Charger le status initial au démarrage
-    const fetchInitialStatus = async () => {
-      const events = await publicClient.getContractEvents({
-        address: VOTING_ADDRESS,
-        abi: VOTING_ABI,
-        eventName: 'WorkflowStatusChange',
-        fromBlock: 0n,
-      });
-      if (events.length > 0) {
-        const status = Number(events[events.length - 1]?.args.newStatus);
-        setWfStatus(status);
-        console.log('Status initial:', status);
-      }
-    };
-
-    fetchInitialStatus();
-
-    return () => unwatch();
-  }, [publicClient]);
+  const { wfStatus, isOwner, clientAddress, activeTab, setActiveTab } = useVotingContract();
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
@@ -69,13 +30,14 @@ export const Tabs = () => {
       <div className="bg-white rounded-lg shadow">
         <div className="border-b border-gray-200">
           <nav className="flex -mb-px">
-            <button
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'voters' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              onClick={() => setActiveTab('voters')}
-            >
-              Votants
-            </button>
-
+            {isOwner && (
+              <button
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'voters' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                onClick={() => setActiveTab('voters')}
+              >
+                Votants
+              </button>
+            )}
             {wfStatus === WorkflowStatusValues.ProposalsRegistrationStarted && (
               <button
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'proposals' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
@@ -92,13 +54,14 @@ export const Tabs = () => {
                 Voter
               </button>
             )}
-
-            <button
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'workflow' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              onClick={() => setActiveTab('workflow')}
-            >
-              Workflow
-            </button>
+            {isOwner && (
+              <button
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'workflow' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                onClick={() => setActiveTab('workflow')}
+              >
+                Workflow
+              </button>
+            )}
             {wfStatus === WorkflowStatusValues.VotesTallied && (
               <button
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'results' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
@@ -110,7 +73,7 @@ export const Tabs = () => {
           </nav>
         </div>
         <div className="p-6">
-          {activeTab === 'voters' && (
+          {activeTab === 'voters' && isOwner && (
             <div>
               <VotersTab />
             </div>
@@ -122,10 +85,10 @@ export const Tabs = () => {
           )}
           {activeTab === 'vote' && (
             <div>
-              <VoteTab />
+              <VoteTab key={clientAddress} />
             </div>
           )}
-          {activeTab === 'workflow' && (
+          {activeTab === 'workflow' && isOwner && (
             <div>
               <WorkflowTab />
             </div>

@@ -1,99 +1,30 @@
-import { CHAIN_ID, VOTING_ABI, VOTING_ADDRESS } from '@/lib/votingContract';
-import type { Proposal } from '.';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { type Address } from 'viem';
-import { useConnection, usePublicClient, useWriteContract } from 'wagmi';
+import { useVotingContract } from '../hooks/useVotingContract';
+import type { Proposal } from '.';
 
 const ProposalsTab = () => {
   const [proposalDescription, setProposalDescription] = useState('');
-  const writeContractCreate = useWriteContract();
-  const [proposals, setProposals] = useState<Proposal[]>([]);
-  const publicClient = usePublicClient();
-  const clientAddress = useConnection().address as Address;
-  const [addressInWhiteList, setAddressInWhiteList] = useState(false);
+  const { proposals, addProposal, voters, clientAddress } = useVotingContract();
+
+  const addressInWhiteList = voters.includes(clientAddress);
 
   const handlerCreateProposals = () => {
     if (!proposalDescription) {
-      toast('Le champ Voter ne peut pas être vide');
+      toast('Le champ ne peut pas être vide');
       return;
     }
 
-    // if (proposals.includes(proposalDescription)) {
-    //   toast.error('Cette proposition est déjà enregistrée');
-    //   return;
-    // }
-
-    writeContractCreate.mutate(
-      {
-        address: VOTING_ADDRESS,
-        abi: VOTING_ABI,
-        functionName: 'addProposal',
-        args: [proposalDescription],
-        chainId: CHAIN_ID,
-      },
-      {
-        onSuccess: () => {
-          toast(`La proposition a été ajoutée avec succès !`);
-        },
-        onError: (error) => {
-          toast(`Transaction error: ${error}`);
-        },
-      },
-    );
+    addProposal(proposalDescription);
+    setProposalDescription('');
   };
-
-  useEffect(() => {
-    const fetchProposals = async () => {
-      if (!publicClient) return;
-
-      const events = await publicClient.getContractEvents({
-        address: VOTING_ADDRESS,
-        abi: VOTING_ABI,
-        eventName: 'ProposalRegistered',
-        fromBlock: 0n,
-      });
-      const proposalIds = events.map((event) => event.args.proposalId!);
-      const resultProposals = await Promise.all(
-        proposalIds.map((proposalId) =>
-          publicClient.readContract({
-            address: VOTING_ADDRESS,
-            abi: VOTING_ABI,
-            functionName: 'getOneProposal',
-            args: [proposalId],
-          }),
-        ),
-      );
-      setProposals(resultProposals);
-    };
-    fetchProposals();
-  }, [publicClient]);
-
-  useEffect(() => {
-    const fetchVoters = async () => {
-      if (!publicClient) return;
-
-      const events = await publicClient.getContractEvents({
-        address: VOTING_ADDRESS,
-        abi: VOTING_ABI,
-        eventName: 'VoterRegistered',
-        fromBlock: 0n,
-      });
-
-      const voterAddresses = events.map((event) => event.args.voterAddress!);
-      const isWhitelisted = voterAddresses.includes(clientAddress);
-      setAddressInWhiteList(isWhitelisted);
-    };
-
-    fetchVoters();
-  }, [publicClient, clientAddress]);
 
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Propositions</h3>
 
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2"> Soumettre une proposition </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Soumettre une proposition</label>
         <textarea
           rows={3}
           placeholder="Description de votre proposition..."
@@ -118,11 +49,11 @@ const ProposalsTab = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {proposals.map(({ description, voteCount }, index) => (
+            {proposals.map((proposal: Proposal, index: number) => (
               <tr key={index}>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">{index}</td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">{description}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{voteCount}</td>
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">{index + 1}</td>
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">{proposal.description}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">{Number(proposal.voteCount)}</td>
               </tr>
             ))}
           </tbody>
@@ -131,4 +62,5 @@ const ProposalsTab = () => {
     </div>
   );
 };
+
 export default ProposalsTab;

@@ -1,85 +1,9 @@
-import { useEffect, useState } from 'react';
 import { WorkflowStatusValues } from '.';
 import { WorkflowCard } from './WorkflowCard';
-import { useWriteContract, usePublicClient } from 'wagmi';
-import { VOTING_ABI, VOTING_ADDRESS } from '@/lib/votingContract';
+import { useVotingContract } from '../hooks/useVotingContract';
 
 export const WorkflowTab = () => {
-  const { mutateAsync } = useWriteContract();
-  const publicClient = usePublicClient();
-  const [wfStatus, setWfStatus] = useState(0);
-
-  useEffect(() => {
-    if (!publicClient) return;
-
-    const unwatch = publicClient.watchContractEvent({
-      address: VOTING_ADDRESS,
-      abi: VOTING_ABI,
-      eventName: 'WorkflowStatusChange',
-      onLogs: (logs) => {
-        const newStatus = Number(logs[0].args.newStatus);
-        setWfStatus(newStatus);
-        console.log('Nouveau status:', newStatus);
-      },
-    });
-
-    // Charger le status initial
-    const fetchInitialStatus = async () => {
-      const events = await publicClient.getContractEvents({
-        address: VOTING_ADDRESS,
-        abi: VOTING_ABI,
-        eventName: 'WorkflowStatusChange',
-        fromBlock: 0n,
-      });
-      if (events.length > 0) {
-        setWfStatus(Number(events[events.length - 1]?.args.newStatus));
-      }
-    };
-
-    fetchInitialStatus();
-
-    return () => unwatch();
-  }, [publicClient]);
-
-  const handleProposalsRegistrationStarted = async () => {
-    await mutateAsync({
-      address: VOTING_ADDRESS,
-      abi: VOTING_ABI,
-      functionName: 'startProposalsRegistering',
-    });
-  };
-
-  const handleProposalsRegistrationEnded = async () => {
-    await mutateAsync({
-      address: VOTING_ADDRESS,
-      abi: VOTING_ABI,
-      functionName: 'endProposalsRegistering',
-    });
-  };
-
-  const handleVotingSessionStarted = async () => {
-    await mutateAsync({
-      address: VOTING_ADDRESS,
-      abi: VOTING_ABI,
-      functionName: 'startVotingSession',
-    });
-  };
-
-  const handleVotingSessionEnded = async () => {
-    await mutateAsync({
-      address: VOTING_ADDRESS,
-      abi: VOTING_ABI,
-      functionName: 'endVotingSession',
-    });
-  };
-
-  const handleVotesTallied = async () => {
-    await mutateAsync({
-      address: VOTING_ADDRESS,
-      abi: VOTING_ABI,
-      functionName: 'tallyVotes',
-    });
-  };
+  const { wfStatus, startProposalsRegistering, endProposalsRegistering, startVotingSession, endVotingSession, tallyVotes } = useVotingContract();
 
   return (
     <div>
@@ -90,7 +14,7 @@ export const WorkflowTab = () => {
           title="Démarrer l'enregistrement des propositions"
           description="RegisteringVoters → ProposalsRegistrationStarted"
           isAvailable={wfStatus === WorkflowStatusValues.RegisteringVoters}
-          onAction={handleProposalsRegistrationStarted}
+          onAction={startProposalsRegistering}
           buttonLabel="Démarrer"
           worflowStatus={WorkflowStatusValues.ProposalsRegistrationStarted}
         />
@@ -99,7 +23,7 @@ export const WorkflowTab = () => {
           title="Terminer l'enregistrement des propositions"
           description="ProposalsRegistrationStarted → ProposalsRegistrationEnded"
           isAvailable={wfStatus === WorkflowStatusValues.ProposalsRegistrationStarted}
-          onAction={handleProposalsRegistrationEnded}
+          onAction={endProposalsRegistering}
           buttonLabel="Terminer"
           buttonColor="red"
           worflowStatus={WorkflowStatusValues.ProposalsRegistrationEnded}
@@ -109,7 +33,7 @@ export const WorkflowTab = () => {
           title="Démarrer la session de vote"
           description="ProposalsRegistrationEnded → VotingSessionStarted"
           isAvailable={wfStatus === WorkflowStatusValues.ProposalsRegistrationEnded}
-          onAction={handleVotingSessionStarted}
+          onAction={startVotingSession}
           buttonLabel="Démarrer"
           worflowStatus={WorkflowStatusValues.VotingSessionStarted}
         />
@@ -118,7 +42,7 @@ export const WorkflowTab = () => {
           title="Terminer la session de vote"
           description="VotingSessionStarted → VotingSessionEnded"
           isAvailable={wfStatus === WorkflowStatusValues.VotingSessionStarted}
-          onAction={handleVotingSessionEnded}
+          onAction={endVotingSession}
           buttonLabel="Terminer"
           buttonColor="red"
           worflowStatus={WorkflowStatusValues.VotingSessionEnded}
@@ -128,7 +52,7 @@ export const WorkflowTab = () => {
           title="Compter les votes"
           description="VotingSessionEnded → VotesTallied"
           isAvailable={wfStatus === WorkflowStatusValues.VotingSessionEnded}
-          onAction={handleVotesTallied}
+          onAction={tallyVotes}
           buttonLabel="Compter"
           buttonColor="red"
           worflowStatus={WorkflowStatusValues.VotesTallied}

@@ -1,7 +1,48 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { useVotingContract } from '../hooks/useVotingContract';
+import type { Proposal } from '.';
 
 export const VoteTab = () => {
-  const [selectedProposal, setSelectedProposal] = useState<number | null>(null);
+  const [selectedProposalIndex, setSelectedProposalIndex] = useState<number | null>(null);
+  const [aVote, setAVote] = useState(false);
+  const [votedProposalId, setVotedProposalId] = useState<number | null>(null);
+
+  const { proposals, vote, clientAddress, getVoterInfo } = useVotingContract();
+
+  useEffect(() => {
+    const fetchVoterInfo = async () => {
+      const voter = await getVoterInfo(clientAddress);
+      if (voter) {
+        setAVote(voter.hasVoted);
+        if (voter.hasVoted) {
+          setVotedProposalId(Number(voter.votedProposalId));
+          setSelectedProposalIndex(Number(voter.votedProposalId));
+        }
+      }
+    };
+
+    fetchVoterInfo();
+  }, [clientAddress, getVoterInfo]);
+
+  const handleSaveVote = async (proposalIndex: number | null) => {
+    if (proposalIndex === null) {
+      toast('Veuillez sélectionner une proposition avant de voter.');
+      return;
+    }
+
+    try {
+      await vote(proposalIndex);
+      setAVote(true);
+      setVotedProposalId(proposalIndex);
+    } catch (error) {
+      if ((error as Error).message.includes('Already voted')) {
+        setAVote(true);
+        toast.error('Vous avez déjà voté.');
+      }
+    }
+  };
+
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Voter</h3>
@@ -15,41 +56,32 @@ export const VoteTab = () => {
           </div>
           <div>
             <p className="text-gray-600">A voté</p>
-            <p className="font-medium text-gray-900">Non</p>
+            <p className="font-medium text-gray-900">{aVote ? 'Oui' : 'Non'}</p>
           </div>
           <div>
             <p className="text-gray-600">Vote pour</p>
-            <p className="font-medium text-gray-900">-</p>
+            <p className="font-medium text-gray-900">{votedProposalId !== null ? `ID ${votedProposalId}` : '-'}</p>
           </div>
         </div>
       </div>
 
       <h4 className="text-sm font-semibold text-gray-700 mb-3">Sélectionnez une proposition</h4>
       <div className="space-y-3 mb-6">
-        <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-          <input type="radio" name="vote" value={0} checked={selectedProposal === 0} onChange={() => setSelectedProposal(0)} className="mr-3" />
-          <div className="flex-1">
-            <p className="font-medium text-gray-900">ID 0 - GENESIS</p>
-            <p className="text-sm text-gray-500">Proposition initiale du système</p>
-          </div>
-        </label>
-        <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-          <input type="radio" name="vote" value={1} checked={selectedProposal === 1} onChange={() => setSelectedProposal(1)} className="mr-3" />
-          <div className="flex-1">
-            <p className="font-medium text-gray-900">ID 1 - Augmenter le budget marketing</p>
-            <p className="text-sm text-gray-500">Améliorer la visibilité du projet</p>
-          </div>
-        </label>
-        <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-          <input type="radio" name="vote" value={2} checked={selectedProposal === 2} onChange={() => setSelectedProposal(2)} className="mr-3" />
-          <div className="flex-1">
-            <p className="font-medium text-gray-900">ID 2 - Développer une app mobile</p>
-            <p className="text-sm text-gray-500">Version iOS et Android</p>
-          </div>
-        </label>
+        {proposals.map((proposal: Proposal, index: number) => (
+          <label key={index} className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+            <input type="radio" name="vote" value={index + 1} checked={selectedProposalIndex === index + 1} onChange={() => setSelectedProposalIndex(index + 1)} className="mr-3" disabled={aVote} />
+            <div className="flex-1">
+              <p className="font-medium text-gray-900">ID {index + 1}</p>
+              <p className="text-sm text-gray-500">{proposal.description}</p>
+              <p className="text-sm text-gray-500">Votes: {Number(proposal.voteCount)}</p>
+            </div>
+          </label>
+        ))}
       </div>
 
-      <button className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">Confirmer mon vote</button>
+      <button className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium disabled:bg-gray-400" onClick={() => handleSaveVote(selectedProposalIndex)} disabled={aVote}>
+        Confirmer mon vote
+      </button>
     </div>
   );
 };

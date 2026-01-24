@@ -1,14 +1,11 @@
-import { useEffect, useState } from 'react';
-import { usePublicClient, useWriteContract } from 'wagmi';
-import { VOTING_ADDRESS, VOTING_ABI, CHAIN_ID } from '@/lib/votingContract';
+import { useState } from 'react';
 import { isAddress, type Address } from 'viem';
 import { toast } from 'sonner';
+import { useVotingContract } from '@/components/hooks/useVotingContract';
 
 export const VotersTab = () => {
   const [voterAddress, setVoterAddress] = useState<Address>('' as Address);
-  const writeContractCreate = useWriteContract();
-  const [voters, setVoters] = useState<Address[]>([]);
-  const publicClient = usePublicClient();
+  const { voters, addVoter } = useVotingContract();
 
   const handlerCreateVoter = () => {
     if (!voterAddress) {
@@ -26,52 +23,15 @@ export const VotersTab = () => {
       return;
     }
 
-    writeContractCreate.mutate(
-      {
-        address: VOTING_ADDRESS,
-        abi: VOTING_ABI,
-        functionName: 'addVoter',
-        args: [voterAddress],
-        chainId: CHAIN_ID,
-      },
-      {
-        onSuccess: () => {
-          toast(`L'adresse du votant ${voterAddress} ajoutée avec succès !`);
-          setVoters((prevVoters) => {
-            return [...prevVoters, voterAddress];
-          });
-          setVoterAddress('' as Address);
-        },
-        onError: (error) => {
-          toast(`Transaction error: ${error}`);
-        },
-      },
-    );
+    addVoter(voterAddress);
+    setVoterAddress('' as Address);
   };
-
-  useEffect(() => {
-    const fetchVoters = async () => {
-      if (!publicClient) return;
-
-      const events = await publicClient.getContractEvents({
-        address: VOTING_ADDRESS,
-        abi: VOTING_ABI,
-        eventName: 'VoterRegistered',
-        fromBlock: 0n,
-      });
-      const addresses = events.map((event) => event.args.voterAddress!);
-      setVoters(addresses);
-    };
-
-    fetchVoters();
-  }, [publicClient]);
 
   return (
     <div>
-      {' '}
       <h3 className="text-lg font-semibold mb-4">Gestion des Votants</h3>
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2"> Ajouter un votant (Owner uniquement) </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Ajouter un votant (Owner uniquement)</label>
         <div className="flex gap-2">
           <input
             type="text"
