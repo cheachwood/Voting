@@ -141,13 +141,6 @@ SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/VOTRE_API_KEY
 SEPOLIA_PRIVATE_KEY=votre_clé_privée_sans_0x
 ```
 
-**Exemple concret :**
-
-```env
-SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/a5d74baa5b3e434786c5fe34df9082c8
-SEPOLIA_PRIVATE_KEY=ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-```
-
 ⚠️ **Remplacez par VOS vraies valeurs !**
 
 ### 3. Sécuriser le .env
