@@ -1,45 +1,49 @@
-# Node modules
-/node_modules
-
-# Compilation output
-/dist
-
-# pnpm deploy output
-/bundle
-
-# Hardhat Build Artifacts
-/artifacts
-
-# Hardhat compilation (v2) support directory
-/cache
-
-# Typechain output
-/types
-
-# Hardhat coverage reports
-/coverage
-
-# Logs
-logs
+# --- LOGS ---
+# Toujours analyser les logs avant de les ignorer en cas de bug
 *.log
+logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# --- DEPENDENCIES ---
+**/node_modules/
 
-# Editor directories and files
+# --- HARDHAT (Backend) ---
+**/artifacts/
+**/cache/
+**/typechain/
+**/typechain-types/
+**/coverage/
+**/coverage.json
+# On ignore les déploiements Ignition pour éviter les conflits de réseau
+**/ignition/deployments/
+
+# --- REACT & FRONTEND ---
+**/dist/
+**/dist-ssr/
+**/build/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- IDE & SYSTEM ---
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# --- TYPESCRIPT ---
+*.tsbuildinfo
+
+# --- HARDHAT (Backend) ---
+.hardhat/

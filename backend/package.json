@@ -2,6 +2,13 @@
   "name": "backend",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "dev": "hardhat node",
+    "deploy": "hardhat ignition deploy",
+    "clean": "hardhat clean"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.0.6",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.1",
@@ -16,6 +23,7 @@
     "undici": "^6.23.0"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.4.0"
+    "@openzeppelin/contracts": "^5.4.0",
+    "dotenv": "^17.2.3"
   }
 }
