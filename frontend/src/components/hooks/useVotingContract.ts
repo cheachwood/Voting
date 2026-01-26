@@ -1,11 +1,9 @@
 import { usePublicClient, useWriteContract, useConnection } from 'wagmi';
-import { VOTING_ADDRESS, VOTING_ABI, CHAIN_ID } from '@/lib/votingContract';
+import { VOTING_ADDRESS, VOTING_ABI, CHAIN_ID, DEPLOYMENT_BLOCK } from '@/lib/votingContract';
 import { useState, useEffect, useCallback } from 'react';
 import { type Address } from 'viem';
 import { toast } from 'sonner';
 import type { Proposal } from '../tabs';
-
-const DEPLOYMENT_BLOCK = 10115418n; // Remplacez par le numéro de bloc réel du déploiement
 
 /// Hook personnalisé pour interagir avec le contrat de vote
 /// Fournit des fonctions pour gérer les votants, propositions, votes et le workflow

@@ -3,8 +3,10 @@
 // export const CHAIN_ID = Number(import.meta.env.VITE_CHAIN_ID) || 31337;
 
 // Adresse du contrat déployé sur Sepolia
-export const VOTING_ADDRESS = '0x00bDc3021D57c4bAc9dc0d96a77ad897AB8AC03f';
+// export const VOTING_ADDRESS = '0x00bDc3021D57c4bAc9dc0d96a77ad897AB8AC03f';
+export const VOTING_ADDRESS = import.meta.env.VITE_VOTING_ADDRESS || '0x7F523755a88D4d01376a19945F42ae2Fdb95dB00';
 export const CHAIN_ID = 11155111;
+export const DEPLOYMENT_BLOCK = BigInt(import.meta.env.VITE_DEPLOYMENT_BLOCK || '10126656');
 
 // ABI du smart contract JobBoard
 export const VOTING_ABI = [
